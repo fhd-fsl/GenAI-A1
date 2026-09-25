@@ -1,1 +1,53 @@
-/assignment_text.txt
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Data & Models (too large for git)
+data/
+checkpoints/
+*.onnx
+*.pt
+*.pth
+
+# Optuna
+optuna_studies/*.db
+
+# Experiment tracking
+mlruns/
+wandb/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# Node (frontend)
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.next/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Assignment text extraction
+assignment_text.txt

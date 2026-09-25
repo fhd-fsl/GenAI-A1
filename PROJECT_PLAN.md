@@ -23,7 +23,7 @@ Build four generative AI systems integrated into one cohesive web application:
 - [x] `pyproject.toml` / `requirements.txt` with pinned deps
 - [x] Shared corruption pipeline (`src/data/corruptions.py`)
 - [x] Dataset download & preparation scripts
-- [ ] Deterministic validation/test corruption manifests
+- [x] Deterministic validation/test corruption manifests
 - [ ] Config system (YAML or Hydra)
 - [ ] MLflow/W&B integration boilerplate
 - [ ] SSIM loss utility

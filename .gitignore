@@ -14,8 +14,8 @@ venv/
 env/
 
 # Data & Models (too large for git)
-data/
-checkpoints/
+/data/
+/checkpoints/
 *.onnx
 *.pt
 *.pth

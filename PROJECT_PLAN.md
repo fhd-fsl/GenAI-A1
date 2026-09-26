@@ -67,15 +67,15 @@ Build four generative AI systems integrated into one cohesive web application:
 - [x] Optional limited skip connections (None used; strict bottleneck enforced to satisfy rubric)
 
 ### M2.2 — Training
-- [ ] Combined loss: `L = α·L1(x, x̂) + (1-α)·(1 - SSIM(x, x̂))`
-- [ ] Initial α = 0.8
-- [ ] Log train/val losses to MLflow/W&B
-- [ ] Checkpoint best model by val loss
+- [x] Combined loss: `L = α·L1(x, x̂) + (1-α)·(1 - SSIM(x, x̂))`
+- [x] Initial α = 0.8 (Handled dynamically by Optuna bounds 0.5-1.0)
+- [x] Log train/val losses to MLflow/W&B
+- [x] Checkpoint best model by val loss
 
 ### M2.3 — Optuna Hyperparameter Search
-- [ ] Search space: learning rate, batch size, bottleneck dim, encoder channels, dropout, α
-- [ ] Validation objective = reconstruction quality + SSIM
-- [ ] Report: search space, trial count, best trial, final config
+- [x] Search space: learning rate, batch size, bottleneck dim, encoder channels, dropout, α
+- [x] Validation objective = reconstruction quality + SSIM
+- [x] Report: search space, trial count, best trial, final config
 
 ### M2.4 — Evaluation
 - [ ] Per-corruption-type metrics (clean, S&P, blur, occlusion)

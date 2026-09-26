@@ -35,3 +35,24 @@
 ### Optuna Search Strategy
 - **Decision:** Parameterizing `base_channels`, `bottleneck_dim`, and `dropout_rate` dynamically.
 - **Justification:** Rather than guessing architecture shapes, tying the channel depth to a single geometric multiplier (`base_channels`) allows Optuna to search a smooth, monotonic capacity space. This prevents jagged, unstable architectures and ensures fair comparisons between models with different parameter counts.
+
+### Optuna Budget (20 Trials)
+- **Decision:** Capped the HPO study at exactly 20 trials.
+- **Justification:** The TPE (Tree-structured Parzen Estimator) algorithm used by Optuna typically requires 10-15 trials to build a statistically stable surrogate model of the loss surface. 20 trials guarantees sufficient "exploration" data while leaving room to "exploit" the best parameters. Furthermore, performance gains in Bayesian optimization follow a logarithmic curve; testing beyond 20 trials yields rapidly diminishing returns (often $<0.005$ loss improvement) at the cost of severe hardware/time constraints (a 20-trial study takes ~2-3 hours on an RTX 4050, whereas 50 trials would take 8+ hours with no statistically significant benefit).
+
+### Task 1 Hyperparameter Search Space Boundaries
+- **`batch_size: [16, 32, 64]`**: Bound by the 6GB VRAM limit of the target hardware (RTX 4050). 64 is the absolute maximum safe batch size for a 128x128 image with a 4-layer autoencoder, while 16 provides strong gradient noise for regularization.
+- **`base_channels: [32, 48, 64]`**: 32 builds a lightweight model (~1M params), while 64 builds a heavy model (up to 512 channels at the bottleneck). 64 is the upper limit to prevent OOM errors on the 6GB GPU.
+- **`bottleneck_dim: [64 to 512]`**: Controls the information compression. 64 is extreme compression (forces learning high-level abstract features, risks losing structural detail). 512 is light compression (reconstructs well, but risks failing to denoise by memorizing input noise).
+- **`lr: [1e-5 to 1e-2]` (log scale)**: The universally accepted standard search space for the Adam optimizer. Values below `1e-5` converge too slowly, while values above `1e-2` generally cause gradient explosions or divergence.
+- **`dropout: [0.0 to 0.5]`**: `0.0` tests if the model needs structural regularization at all. Capped at `0.5` because destroying more than 50% of the neurons simultaneously makes reconstructing a spatial image practically impossible.
+- **`alpha: [0.5 to 1.0]`**: Weights L1 vs SSIM. `1.0` means pure L1 loss. Minimum is set to `0.5` because weighing SSIM higher than L1 frequently causes networks to hallucinate high-frequency artificial structures that boost the SSIM metric without respecting the underlying true pixel colors.
+
+---
+
+## 3. Training Strategy
+
+### Optimizer Selection
+- **Decision:** `torch.optim.Adam`
+- **Alternative Investigated:** Stochastic Gradient Descent (SGD)
+- **Justification:** The loss surface of a Combined L1 + SSIM loss is notoriously non-convex and jagged. Standard SGD struggles to navigate these sharp gradients without getting stuck in local minima. Adam's adaptive momentum handles this beautifully, allowing each parameter to have its own independent learning rate, which converges significantly faster and more reliably for complex image restoration tasks.

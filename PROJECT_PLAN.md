@@ -78,10 +78,10 @@ Build four generative AI systems integrated into one cohesive web application:
 - [x] Report: search space, trial count, best trial, final config
 
 ### M2.4 — Evaluation
-- [ ] Per-corruption-type metrics (clean, S&P, blur, occlusion)
-- [ ] Per-severity-level metrics (low, medium, high)
-- [ ] Visual grid: clean target | corrupted input | reconstruction | error map
-- [ ] ≥12 representative examples + ≥4 failure cases
+- [x] Per-corruption-type metrics (clean, S&P, blur, occlusion)
+- [x] Per-severity-level metrics (low, medium, high)
+- [x] Visual grid: clean target | corrupted input | reconstruction | error map
+- [x] ≥12 representative examples + ≥4 failure cases
 
 ### M2.5 — ONNX Export
 - [ ] Export trained model to ONNX

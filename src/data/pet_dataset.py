@@ -84,9 +84,13 @@ class OxfordPetDataset(Dataset):
                 eval_dict["corruption_type"], 
                 eval_dict["params"]
             )
-            # Override with the label from manifest just to be safe
-            label = eval_dict["label"]
-            return corrupted_tensor, clean_tensor, label
+            # Instead of just the integer label, return the full metadata dict
+            metadata = {
+                "corruption": eval_dict["corruption_type"],
+                "severity": eval_dict.get("severity", "none"),
+                "label": eval_dict["label"]
+            }
+            return corrupted_tensor, clean_tensor, metadata
 
 
 def balanced_corruption_collate_fn(batch: List[torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:

@@ -24,7 +24,7 @@ Build four generative AI systems integrated into one cohesive web application:
 - [x] Shared corruption pipeline (`src/data/corruptions.py`)
 - [x] Dataset download & preparation scripts
 - [x] Deterministic validation/test corruption manifests
-- [ ] Config system (YAML or Hydra)
+- [x] Config system (YAML or Hydra)
 - [ ] MLflow/W&B integration boilerplate
 - [ ] SSIM loss utility
 - [ ] Common training loop utilities (early stopping, checkpointing, LR scheduling)

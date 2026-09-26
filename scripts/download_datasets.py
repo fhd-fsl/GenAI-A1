@@ -52,8 +52,15 @@ def download_fs2k(data_dir: str):
     # from a provided Google Drive or GitHub link.
 
 if __name__ == "__main__":
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from src.utils.config import load_config
+    
+    config = load_config()
+    default_data_dir = config.get("data", {}).get("dir", "./data")
+
     parser = argparse.ArgumentParser(description="Download datasets for GenAI Assignment 1")
-    parser.add_argument("--data-dir", type=str, default="./data", help="Directory to store datasets")
+    parser.add_argument("--data-dir", type=str, default=default_data_dir, help="Directory to store datasets")
     parser.add_argument("--dataset", type=str, choices=["all", "pet", "fs2k"], default="all")
     
     args = parser.parse_args()

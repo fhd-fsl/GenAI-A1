@@ -1,0 +1,21 @@
+# configs/default.yaml
+project: "genai_assignment_1"
+seed: 42
+
+data:
+  dir: "./data"
+  manifests_dir: "./manifests"
+  image_size: 128
+  batch_size: 32
+  num_workers: 4
+
+training:
+  epochs: 50
+  learning_rate: 0.001
+  weight_decay: 0.00001
+  early_stopping_patience: 10
+  device: "cuda"  # Will fallback to cpu/mps in code if cuda not available
+
+optuna:
+  n_trials: 20
+  storage: "sqlite:///optuna_studies/studies.db"

@@ -102,8 +102,15 @@ def create_test_manifest(test_images: List[str], output_path: str):
     print(f"Test manifest saved to {output_path} ({len(test_images)} images, 10 eval tasks each).")
 
 if __name__ == "__main__":
-    data_dir = "./data/oxford-iiit-pet"
-    manifests_dir = "./manifests"
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from src.utils.config import load_config
+
+    config = load_config()
+    base_data_dir = config.get("data", {}).get("dir", "./data")
+    data_dir = os.path.join(base_data_dir, "oxford-iiit-pet")
+    manifests_dir = config.get("data", {}).get("manifests_dir", "./manifests")
+    
     os.makedirs(manifests_dir, exist_ok=True)
     
     trainval_path = os.path.join(data_dir, "annotations", "trainval.txt")

@@ -25,10 +25,10 @@ Build four generative AI systems integrated into one cohesive web application:
 - [x] Dataset download & preparation scripts
 - [x] Deterministic validation/test corruption manifests
 - [x] Config system (YAML or Hydra)
-- [ ] MLflow/W&B integration boilerplate
-- [ ] SSIM loss utility
-- [ ] Common training loop utilities (early stopping, checkpointing, LR scheduling)
-- [ ] ONNX export helper
+- [x] MLflow/W&B integration boilerplate
+- [x] SSIM loss utility
+- [x] Common training loop utilities (early stopping, checkpointing, LR scheduling)
+- [x] ONNX export helper
 
 ### Key Decisions
 - **128×128** image resolution for all tasks
@@ -42,14 +42,14 @@ Build four generative AI systems integrated into one cohesive web application:
 **Goal**: Fully working data loaders for Tasks 1–3.
 
 ### M1.1 — Oxford-IIIT Pet Pipeline
-- [ ] Download Oxford-IIIT Pet dataset
-- [ ] 80/20 split with seed 42
-- [ ] Runtime corruption pipeline (clean / salt-and-pepper / blur / occlusion)
+- [x] Download Oxford-IIIT Pet dataset
+- [x] 80/20 split with seed 42
+- [x] Runtime corruption pipeline (clean / salt-and-pepper / blur / occlusion)
   - Salt-and-pepper: p ∈ [0.02, 0.15]
   - Gaussian blur: kernel ∈ {3,5,7}, σ ∈ [0.5, 2.5]
   - Occlusion: 1–3 rectangles, 10–35% area
-- [ ] Deterministic **validation manifest** (fixed corruptions per image)
-- [ ] Deterministic **test manifest** with 3 severity levels per corruption:
+- [x] Deterministic **validation manifest** (fixed corruptions per image)
+- [x] Deterministic **test manifest** with 3 severity levels per corruption:
   - S&P: p = {0.03, 0.08, 0.15}
   - Blur: {(3,0.7), (5,1.5), (7,2.5)}
   - Occlusion: ~{10%, 20%, 35%} with {1, 2, 3} rectangles

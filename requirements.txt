@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
+
 # Machine Learning & Tensors
 torch>=2.2.0
 torchvision>=0.17.0
@@ -17,7 +19,8 @@ scikit-learn>=1.4.0
 
 # ONNX Export & Inference
 onnx>=1.15.0
-onnxruntime>=1.17.0
+onnxruntime-gpu>=1.17.0
+onnxscript>=0.1.0
 
 # Backend Services (FastAPI)
 fastapi>=0.110.0

@@ -61,10 +61,10 @@ Build four generative AI systems integrated into one cohesive web application:
 **Goal**: Train a single AE that restores all corruption types.
 
 ### M2.1 — Architecture
-- [ ] Conv encoder (progressive spatial reduction, channel increase)
-- [ ] Genuine bottleneck (compressed latent)
-- [ ] Conv decoder (reconstruct 128×128 RGB)
-- [ ] Optional limited skip connections (must be justified)
+- [x] Conv encoder (progressive spatial reduction, channel increase)
+- [x] Genuine bottleneck (compressed latent)
+- [x] Conv decoder (reconstruct 128×128 RGB)
+- [x] Optional limited skip connections (None used; strict bottleneck enforced to satisfy rubric)
 
 ### M2.2 — Training
 - [ ] Combined loss: `L = α·L1(x, x̂) + (1-α)·(1 - SSIM(x, x̂))`

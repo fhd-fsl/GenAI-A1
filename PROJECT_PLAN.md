@@ -53,7 +53,7 @@ Build four generative AI systems integrated into one cohesive web application:
   - S&P: p = {0.03, 0.08, 0.15}
   - Blur: {(3,0.7), (5,1.5), (7,2.5)}
   - Occlusion: ~{10%, 20%, 35%} with {1, 2, 3} rectangles
-- [ ] Balanced batching support (for classifier in T2)
+- [x] Balanced batching support (for classifier in T2)
 
 ---
 

@@ -84,8 +84,8 @@ Build four generative AI systems integrated into one cohesive web application:
 - [x] ≥12 representative examples + ≥4 failure cases
 
 ### M2.5 — ONNX Export
-- [ ] Export trained model to ONNX
-- [ ] Verify ONNX output matches PyTorch output
+- [x] Export trained model to ONNX
+- [x] Verify ONNX output matches PyTorch output
 
 ---
 

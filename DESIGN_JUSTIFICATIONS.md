@@ -72,3 +72,15 @@
 ### Loss Function Constraint (Raw Logits)
 - **Decision:** The final layer is a raw linear projection (4 outputs) without a trailing Softmax activation.
 - **Justification:** PyTorch's `nn.CrossEntropyLoss` mathematically expects raw, unnormalized logits to compute the log-softmax internally. Applying Softmax manually before passing it to the loss function would cause severe numerical instability and gradient vanishing.
+
+### Deterministic Batch Balancing (`collate_fn`)
+- **Decision:** Used a custom PyTorch `collate_fn` to enforce strict uniform class distribution within every single training batch.
+- **Justification:** The assignment mandates that "training batches must be balanced". Instead of relying on random sampling (which can lead to micro-imbalances in small batches like $B=16$), the `collate_fn` strictly assigns corruptions using a modulo cycling pattern (`label = i % 4`). This mathematically guarantees exactly 25% representation for each of the 4 classes inside every single training step, entirely neutralizing class imbalance bias.
+
+### Optuna TPE Metric (Cross-Entropy vs. Accuracy)
+- **Decision:** Instructed Optuna to minimize `val_loss` (Cross-Entropy) rather than maximizing `val_acc` (Accuracy).
+- **Justification:** Accuracy is a non-differentiable step-function; a model could be extremely unconfident but still technically "accurate", providing flat gradients to the Optuna TPE surrogate model. Cross-Entropy provides a smooth, continuous probabilistic landscape, allowing the TPE pruner to identify converging hyperparameter combinations much more reliably.
+
+### Early Stopping as Primary Regularizer
+- **Decision:** Hardcoded patience to 5 epochs and prioritized the `best_loss` weights over the final epoch weights.
+- **Justification:** As observed in Trial 20, classifiers on synthesized datasets are highly prone to sudden memorization (where training accuracy hits 98% but validation loss explodes from 0.059 to 0.47 in just a few epochs). Early Stopping successfully isolated and captured the exact epoch (Epoch 18) where generalization peaked, completely discarding the overfitted final state.

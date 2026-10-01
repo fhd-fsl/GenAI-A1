@@ -114,8 +114,8 @@ Build four generative AI systems integrated into one cohesive web application:
 - [x] Identify classifier-error-induced restoration failures
 
 ### M3.4 — ONNX Export
-- [ ] Export classifier + 3 specialists to ONNX
-- [ ] Verify consistency
+- [x] Export classifier + 3 specialists to ONNX
+- [x] Verify consistency
 
 ---
 

@@ -9,8 +9,8 @@ This report evaluates the complete Task 2 pipeline, which consists of:
 ## Final Test Set Metrics (N=36,690)
 | Routing Mode | L1 Loss ↓ | SSIM ↑ |
 |--------------|-----------|--------|
-| **Oracle** (Ground Truth Labels) | 0.07158 | 0.52668 |
-| **Predicted** (Classifier Driven) | **0.07113** | **0.53060** |
+| **Oracle** (Ground Truth Labels) | 0.06814 | 0.53327 |
+| **Predicted** (Classifier Driven) | **0.06774** | **0.53699** |
 
 ## Findings & Anomalies
 Interestingly, the **Predicted Routing outperformed the Oracle Routing** by a marginal fraction. 

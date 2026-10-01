@@ -80,7 +80,7 @@ def train_specialist(specialist_name, params, device):
     os.makedirs(checkpoint_dir, exist_ok=True)
     save_path = os.path.join(checkpoint_dir, "best_model.pt")
     
-    epochs = 30
+    epochs = 100
     early_stopping = EarlyStopping(patience=5, min_delta=0.001, save_path=save_path)
     
     # 4. Training Loop

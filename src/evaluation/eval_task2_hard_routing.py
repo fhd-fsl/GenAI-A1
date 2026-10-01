@@ -92,6 +92,8 @@ def main():
     predicted_ssim_total = 0.0
     
     failure_cases = [] # Stores (clean, corrupted, oracle_recon, predicted_recon, true_label, pred_label)
+    success_cases = [] # Stores representative examples of good generations
+    success_collected = {"salt_and_pepper": False, "gaussian_blur": False, "rectangular_occlusion": False}
     
     print("\nRunning inference on test set (Oracle vs Predicted)...")
     
@@ -131,6 +133,17 @@ def main():
                 if true_label != pred_label and len(failure_cases) < 4:
                     if true_label != "clean" or pred_label != "clean": # Interesting failures only
                         failure_cases.append({
+                            "clean": clean[i].cpu(),
+                            "corrupted": corrupted[i].cpu(),
+                            "oracle": oracle_recon[i].cpu(),
+                            "predicted": predicted_recon[i].cpu(),
+                            "true_label": true_label,
+                            "pred_label": pred_label
+                        })
+                # Track diverse representative good examples (one for each corruption)
+                elif true_label == pred_label and true_label in success_collected and not success_collected[true_label]:
+                    success_collected[true_label] = True
+                    success_cases.append({
                             "clean": clean[i].cpu(),
                             "corrupted": corrupted[i].cpu(),
                             "oracle": oracle_recon[i].cpu(),
@@ -202,6 +215,42 @@ def main():
         plt.savefig("results/task2/routing_failures.png", dpi=300)
         plt.close()
         print("\n[SUCCESS] Failure cases grid saved to results/task2/routing_failures.png")
+        
+    if len(success_cases) > 0:
+        fig, axes = plt.subplots(len(success_cases), 4, figsize=(16, 4 * len(success_cases)))
+        
+        for idx, case in enumerate(success_cases):
+            # Move channels back to HWC for matplotlib
+            cln_img = case["clean"].permute(1, 2, 0).numpy().clip(0, 1)
+            cor_img = case["corrupted"].permute(1, 2, 0).numpy().clip(0, 1)
+            orcl_img = case["oracle"].permute(1, 2, 0).numpy().clip(0, 1)
+            prd_img = case["predicted"].permute(1, 2, 0).numpy().clip(0, 1)
+            
+            if len(success_cases) == 1:
+                ax_row = axes
+            else:
+                ax_row = axes[idx]
+                
+            ax_row[0].imshow(cln_img)
+            ax_row[0].set_title(f"Target (Clean)")
+            ax_row[0].axis('off')
+            
+            ax_row[1].imshow(cor_img)
+            ax_row[1].set_title(f"Corrupted Input\n(True: {case['true_label']})")
+            ax_row[1].axis('off')
+            
+            ax_row[2].imshow(orcl_img)
+            ax_row[2].set_title(f"Oracle Reconstruction\n(Routed to: {case['true_label']})")
+            ax_row[2].axis('off')
+            
+            ax_row[3].imshow(prd_img)
+            ax_row[3].set_title(f"Predicted Reconstruction\n(Properly Routed to: {case['pred_label']})")
+            ax_row[3].axis('off')
+            
+        plt.tight_layout()
+        plt.savefig("results/task2/representative_examples.png", dpi=300)
+        plt.close()
+        print("[SUCCESS] Representative successes grid saved to results/task2/representative_examples.png")
 
 if __name__ == "__main__":
     main()

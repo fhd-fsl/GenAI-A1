@@ -56,3 +56,19 @@
 - **Decision:** `torch.optim.Adam`
 - **Alternative Investigated:** Stochastic Gradient Descent (SGD)
 - **Justification:** The loss surface of a Combined L1 + SSIM loss is notoriously non-convex and jagged. Standard SGD struggles to navigate these sharp gradients without getting stuck in local minima. Adam's adaptive momentum handles this beautifully, allowing each parameter to have its own independent learning rate, which converges significantly faster and more reliably for complex image restoration tasks.
+
+---
+
+## 4. Classifier Architecture (Task 2 / M3.1)
+
+### Progressive Strided Downsampling (VGG/ResNet Style)
+- **Decision:** 5 convolutional blocks, progressively halving spatial resolution with `stride=2` while doubling channel depth.
+- **Justification:** This forces the network to trade raw spatial pixels for deep, abstract semantic features (e.g., detecting global blur vs isolated dead pixels).
+
+### Adaptive Average Pooling
+- **Decision:** Used `AdaptiveAvgPool2d((1, 1))` before the fully connected head.
+- **Justification:** Flattening a fully spatial tensor ($4 \times 4 \times 256$) directly into a dense layer creates millions of fragile, rigid parameters. Adaptive Pooling averages every spatial channel into a single value, making the classifier heavily **spatially invariant**. This ensures the network can classify "Rectangular Occlusion" regardless of whether the black box appears in the top-left or bottom-right corner.
+
+### Loss Function Constraint (Raw Logits)
+- **Decision:** The final layer is a raw linear projection (4 outputs) without a trailing Softmax activation.
+- **Justification:** PyTorch's `nn.CrossEntropyLoss` mathematically expects raw, unnormalized logits to compute the log-softmax internally. Applying Softmax manually before passing it to the loss function would cause severe numerical instability and gradient vanishing.

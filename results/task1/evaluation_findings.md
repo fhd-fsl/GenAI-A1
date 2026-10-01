@@ -2,6 +2,10 @@
 
 ## Metrics Summary (Best Trial: #14)
 
+### 📂 Dataset Statistics (Official Test Set)
+- **Base Test Images**: 3,669 (Untouched official Oxford-IIIT Pet test split)
+- **Deterministic Corruptions per Image**: 10 (1 Clean + 3 S&P Severities + 3 Blur Severities + 3 Occlusion Severities)
+- **Total Evaluated Samples**: 36,690
 ### 📊 Per Corruption Type
 | Corruption Type | L1 Loss (Lower = Better) | SSIM (Higher = Better) |
 | :--- | :--- | :--- |

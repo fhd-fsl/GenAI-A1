@@ -93,11 +93,11 @@ Build four generative AI systems integrated into one cohesive web application:
 **Goal**: Classifier → specialist AE routing system.
 
 ### M3.1 — Corruption Classifier
-- [ ] Conv classifier → 4 classes (clean, S&P, blur, occlusion)
-- [ ] Balanced training batches
-- [ ] Cross-entropy loss
-- [ ] Optuna: LR, batch size, channels, dropout, weight decay
-- [ ] Evaluation: accuracy, macro precision/recall/F1, per-class metrics, confusion matrix
+- [x] Conv classifier → 4 classes (clean, S&P, blur, occlusion)
+- [x] Balanced training batches
+- [x] Cross-entropy loss
+- [x] Optuna: LR, batch size, channels, dropout, weight decay
+- [x] Evaluation: accuracy, macro precision/recall/F1, per-class metrics, confusion matrix
 
 ### M3.2 — Specialist Autoencoders (×3)
 - [ ] Salt-and-pepper specialist

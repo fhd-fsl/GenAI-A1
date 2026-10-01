@@ -100,12 +100,12 @@ Build four generative AI systems integrated into one cohesive web application:
 - [x] Evaluation: accuracy, macro precision/recall/F1, per-class metrics, confusion matrix
 
 ### M3.2 — Specialist Autoencoders (×3)
-- [ ] Salt-and-pepper specialist
-- [ ] Gaussian blur specialist
-- [ ] Rectangular occlusion specialist
-- [ ] Same architecture base, independent weights
-- [ ] Optuna (shared search → independent training): LR, bottleneck, channels, batch size, L1/SSIM weight
-- [ ] Clean → identity bypass (no specialist needed)
+- [x] Salt-and-pepper specialist
+- [x] Gaussian blur specialist
+- [x] Rectangular occlusion specialist
+- [x] Same architecture base, independent weights
+- [x] Optuna (shared search → independent training): LR, bottleneck, channels, batch size, L1/SSIM weight
+- [x] Clean → identity bypass (no specialist needed)
 
 ### M3.3 — Hard-Routed Inference
 - [ ] Oracle-routing mode (ground-truth label selects expert)

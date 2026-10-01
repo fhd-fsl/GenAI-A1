@@ -193,12 +193,6 @@ def objective(trial):
         if avg_val_loss < best_avg_val_loss - 0.001:
             best_avg_val_loss = avg_val_loss
             stagnant_epochs = 0
-            
-            # Save the winning parameters to yaml config eventually
-            os.makedirs("configs", exist_ok=True)
-            import yaml
-            with open("configs/task2_specialists_best.yaml", "w") as f:
-                yaml.dump(trial.params, f)
         else:
             stagnant_epochs += 1
             
@@ -235,3 +229,10 @@ if __name__ == "__main__":
     print("Best hyperparameters:")
     for key, value in study.best_trial.params.items():
         print(f"  {key}: {value}")
+        
+    import yaml
+    os.makedirs("configs", exist_ok=True)
+    with open("configs/task2_specialists_best.yaml", "w") as f:
+        yaml.dump(study.best_trial.params, f)
+        
+    print("[SUCCESS] Optimal shared parameters permanently saved to configs/task2_specialists_best.yaml")

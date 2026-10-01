@@ -142,14 +142,15 @@ def train_specialist(specialist_name, params, device):
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    config_path = "configs/task2_specialists_best.yaml"
-    if not os.path.exists(config_path):
-        raise FileNotFoundError(f"Shared architecture config not found: {config_path}. Did you run HPO first?")
+    import optuna
+    study_db_path = "sqlite:///optuna_studies/task2_specialists.db"
+    if not os.path.exists("optuna_studies/task2_specialists.db"):
+        raise FileNotFoundError("Specialist Optuna database not found. Did you run HPO first?")
         
-    with open(config_path, "r") as f:
-        params = yaml.safe_load(f)
-        
-    print(f"Loaded shared architecture parameters:")
+    study = optuna.load_study(study_name="task2_specialists_hpo", storage=study_db_path)
+    params = study.best_trial.params
+    
+    print(f"Loaded shared architecture parameters directly from Optuna DB (Trial {study.best_trial.number}):")
     print(params)
     
     # Train each specialist sequentially to preserve VRAM

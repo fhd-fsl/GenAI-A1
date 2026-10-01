@@ -108,10 +108,10 @@ Build four generative AI systems integrated into one cohesive web application:
 - [x] Clean → identity bypass (no specialist needed)
 
 ### M3.3 — Hard-Routed Inference
-- [ ] Oracle-routing mode (ground-truth label selects expert)
-- [ ] Predicted-routing mode (classifier selects expert)
-- [ ] Compare both modes
-- [ ] Identify classifier-error-induced restoration failures
+- [x] Oracle-routing mode (ground-truth label selects expert)
+- [x] Predicted-routing mode (classifier selects expert)
+- [x] Compare both modes
+- [x] Identify classifier-error-induced restoration failures
 
 ### M3.4 — ONNX Export
 - [ ] Export classifier + 3 specialists to ONNX

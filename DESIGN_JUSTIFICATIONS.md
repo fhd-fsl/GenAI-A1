@@ -84,3 +84,19 @@
 ### Early Stopping as Primary Regularizer
 - **Decision:** Hardcoded patience to 5 epochs and prioritized the `best_loss` weights over the final epoch weights.
 - **Justification:** As observed in Trial 20, classifiers on synthesized datasets are highly prone to sudden memorization (where training accuracy hits 98% but validation loss explodes from 0.059 to 0.47 in just a few epochs). Early Stopping successfully isolated and captured the exact epoch (Epoch 18) where generalization peaked, completely discarding the overfitted final state.
+
+## M3.2: Specialist Autoencoders
+
+### High Alpha Preference (L1 over SSIM)
+- **Decision:** The Optuna shared search mathematically settled on an $\alpha$ value of `0.98`, making the loss function almost entirely driven by L1 MAE rather than SSIM.
+- **Justification:** Because these are *specialist* models tasked with aggressive restoration (like painting over massive black rectangular occlusions), structural similarity (SSIM) can be highly restrictive and penalizing during early epochs when the model is attempting to aggressively hallucinate missing textures. L1 MAE provides a much more stable, pixel-wise gradient for heavy inpainting tasks.
+
+### Sequential Independent Training
+- **Decision:** Once the shared architecture was found, the 3 specialists were trained sequentially rather than concurrently.
+- **Justification:** While the HPO search ran 3 concurrent micro-models to find the architecture, the final 30-epoch training run requires saving dense computational graphs for Early Stopping. Running 3 full-scale autoencoders simultaneously would exceed the 6GB VRAM limit of the target RTX 4050 hardware.
+
+## M3.3: Hard-Routed Inference
+
+### Predicted Routing Outperforming Oracle
+- **Decision:** Documented and accepted the anomaly where Predicted Routing (SSIM: 0.530) outperformed Oracle Routing (SSIM: 0.526).
+- **Justification:** This counterintuitive result occurs due to "borderline" corruptions. For example, if the pipeline generates a Gaussian Blur with an extremely low `sigma=0.5`, the Oracle forces the image through the Blur Specialist, which may over-smooth an already clean-looking image. The Classifier, however, identifies the image as "Clean" and triggers the Identity Bypass, preserving the original sharp pixels and yielding a higher SSIM score than the Oracle's forced intervention.

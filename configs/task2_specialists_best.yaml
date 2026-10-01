@@ -1,5 +1,0 @@
-alpha: 0.9625906528888785
-base_channels: 32
-batch_size: 16
-bottleneck_dim: 64
-lr: 0.006589338814476528

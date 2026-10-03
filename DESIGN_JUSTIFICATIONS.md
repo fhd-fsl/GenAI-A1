@@ -100,3 +100,32 @@
 ### Predicted Routing Outperforming Oracle
 - **Decision:** Documented and accepted the anomaly where Predicted Routing (SSIM: 0.530) outperformed Oracle Routing (SSIM: 0.526).
 - **Justification:** This counterintuitive result occurs due to "borderline" corruptions. For example, if the pipeline generates a Gaussian Blur with an extremely low `sigma=0.5`, the Oracle forces the image through the Blur Specialist, which may over-smooth an already clean-looking image. The Classifier, however, identifies the image as "Clean" and triggers the Identity Bypass, preserving the original sharp pixels and yielding a higher SSIM score than the Oracle's forced intervention.
+
+---
+
+## 5. Soft Mixture-of-Experts (Task 3)
+
+### Routing Collapse and the $L_{balance}$ Regularizer
+- **Decision:** Implemented a balance regularizer $L_{balance} = \sum_{k=1}^4 (\bar{w}_k - 0.25)^2$ as part of the joint loss.
+- **Justification:** In a Soft Mixture-of-Experts architecture, the gating network is highly susceptible to "routing collapse" (or "mode collapse"). During the early phases of joint training, one expert may marginally outperform the others simply by chance. The gate quickly learns that routing all images to this slightly better expert strictly minimizes the reconstruction loss faster than exploring the others. Without intervention, the gating network converges into a static state where it ignores the input entirely and routes 100% of the data to a single expert (rendering the other 3 experts completely inactive). 
+By computing the mean routing weight across a batch ($\bar{w}_k$) and penalizing its Mean Squared Error deviation from $0.25$ (a perfectly uniform distribution across the 4 branches), $L_{balance}$ mathematically forces the gate to distribute the workload. This ensures all experts receive gradients and remain active, forcing the gate to actually learn input-dependent routing rather than defaulting to a lazy static assignment.
+
+### Decoupling `lambda_recon` and `lambda_ssim`
+- **Decision:** Treated L1 and SSIM weights as independent, unbounded continuous variables during HPO.
+- **Justification:** Initially, setting $\lambda_{ssim} = 1.0 - \lambda_{recon}$ creates a rigid convex combination. However, because L1 and SSIM operate on completely different numerical scales (L1 is an absolute pixel difference often $< 0.1$, while $1-SSIM$ represents structural variance), forcing them to sum to $1.0$ artificially restricts the optimization manifold. Allowing Optuna to tune them completely independently provides the necessary mathematical freedom to balance pixel-perfect colors against structural sharpness dynamically.
+
+### Pruning on Inactive Experts
+- **Decision:** Instructed Optuna to instantly prune trials where the maximum average routing weight exceeds $0.90$ OR the minimum falls below $0.05$.
+- **Justification:** While checking for a $>0.90$ maximum prevents absolute single-expert dominance, it does not prevent a scenario where two experts split the load 50/50 while the other two drop to $0.0$. Checking the lower bound ($<0.05$) guarantees that every single branch (Clean, S&P, Blur, Occ) remains mathematically alive and active throughout the joint fine-tuning phase.
+
+### Temperature Scaling ($\tau$)
+- **Decision:** Divided the gating logits by a tunable temperature parameter ($\tau$) before the softmax operation.
+- **Justification:** A standard softmax often forces the probability distribution toward a hard `argmax` (e.g., `[0.99, 0.01, 0.0, 0.0]`), which defeats the purpose of a *soft* mixture. By tuning a temperature parameter $\tau$, we control the sharpness of the routing. A high $\tau$ smoothes the distribution (blending the experts together), while a low $\tau$ sharpens it. Optuna consistently found an optimal $\tau > 2.0$ (e.g., $\tau \approx 2.30$), proving the network mathematically benefited from a smoother, continuous blend of experts rather than isolated, sharp routing.
+
+### Two-Stage Training Pipeline
+- **Decision:** Split the training process into a 10-epoch Gate Warm-up (experts frozen) followed by a 100-epoch Joint Fine-Tuning (entire network unfrozen).
+- **Justification:** If we unfreeze the experts immediately, the untrained gating network sends chaotic, random gradients down into our carefully pre-trained specialists, effectively destroying their weights before it learns how to route properly. By freezing the experts during Stage 1, the gate safely learns basic semantic routing. In Stage 2, the entire network is unfrozen, allowing the experts to organically adapt to the specific *soft, blended* inputs they are receiving and cooperate rather than acting strictly in isolation.
+
+### Independent Learning Rates for Stages
+- **Decision:** Handled `warmup_lr` and `finetune_lr` as two completely independent log-scale search variables in Optuna, rather than linking them via a hardcoded multiplier (e.g., `finetune_lr = warmup_lr * 0.1`).
+- **Justification:** The two stages perform fundamentally different mathematical operations. Stage 1 is training a simple linear classifier head from scratch, while Stage 2 is gently shifting the dense, deep weights of 3 massive autoencoders. Optuna discovered that Stage 2 actually required a *higher* learning rate (e.g., $6.47 \times 10^{-5}$) than Stage 1 ($1.91 \times 10^{-5}$) to properly mesh the massive network together, a counterintuitive optimum that a hardcoded $0.1\times$ decay multiplier would have completely missed.

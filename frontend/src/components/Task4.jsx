@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { generateSketch } from '../api';
 
 export default function Task4() {
@@ -7,6 +7,11 @@ export default function Task4() {
   const [styleIdx, setStyleIdx] = useState(0);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [webcamActive, setWebcamActive] = useState(false);
+  const [stream, setStream] = useState(null);
+  
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
@@ -15,6 +20,49 @@ export default function Task4() {
       setPreview(URL.createObjectURL(selected));
       setResult(null);
     }
+  };
+
+  const startWebcam = async () => {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: true });
+      setStream(s);
+      setWebcamActive(true);
+    } catch (err) {
+      console.error(err);
+      alert('Could not access webcam. Please allow permissions.');
+    }
+  };
+
+  useEffect(() => {
+    if (webcamActive && videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [webcamActive, stream]);
+
+  const captureWebcam = () => {
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext('2d');
+      canvasRef.current.width = videoRef.current.videoWidth;
+      canvasRef.current.height = videoRef.current.videoHeight;
+      // Note: we draw it as-is, but if mirrored we'd flip the context, standard is fine for ML.
+      context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
+      
+      canvasRef.current.toBlob((blob) => {
+        const capturedFile = new File([blob], 'webcam_capture.jpg', { type: 'image/jpeg' });
+        setFile(capturedFile);
+        setPreview(URL.createObjectURL(capturedFile));
+        setResult(null);
+        stopWebcam();
+      }, 'image/jpeg');
+    }
+  };
+
+  const stopWebcam = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setWebcamActive(false);
   };
 
   const handleRun = async () => {
@@ -47,8 +95,8 @@ export default function Task4() {
       {/* Top Control Bar */}
       <div className="w-full bg-surface-container rounded-xl shadow-md p-space-md mb-space-lg border border-surface-container-high">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-md items-center">
-          <div className="lg:col-span-4 relative group">
-            <label className="flex items-center justify-between px-space-md py-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors duration-150 cursor-pointer border border-transparent hover:border-surface-container-high">
+          <div className="lg:col-span-4 flex gap-space-sm h-full items-stretch">
+            <label className="flex-1 flex items-center justify-between px-space-md py-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors duration-150 cursor-pointer border border-transparent hover:border-surface-container-high">
               <div className="flex items-center gap-space-sm min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0 text-primary">
                   <span className="material-symbols-outlined text-[20px]">add_photo_alternate</span>
@@ -58,9 +106,11 @@ export default function Task4() {
                   <span className="font-label-sm text-label-sm text-outline truncate">RGB Face Photograph</span>
                 </div>
               </div>
-              <span className="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px] ml-space-sm shrink-0">upload_file</span>
               <input accept="image/*" className="sr-only" type="file" onChange={handleFileChange} />
             </label>
+            <button onClick={startWebcam} title="Use Webcam" className="px-space-md flex flex-col items-center justify-center rounded-lg bg-surface-container-low hover:bg-surface-container-high text-primary transition-colors border border-transparent hover:border-surface-container-high shrink-0">
+              <span className="material-symbols-outlined text-[20px]">photo_camera</span>
+            </button>
           </div>
 
           <div className="lg:col-span-5 flex items-center gap-space-sm bg-surface-container-low px-space-md py-space-sm rounded-lg">
@@ -75,8 +125,8 @@ export default function Task4() {
             </div>
           </div>
 
-          <div className="lg:col-span-3 flex items-center justify-end">
-            <button onClick={handleRun} disabled={loading || !file} className="w-full py-space-md px-space-lg rounded-lg bg-primary-container text-on-primary-container font-headline-md text-headline-md tracking-tight hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-space-sm shadow-md">
+          <div className="lg:col-span-3 flex items-center justify-end h-full">
+            <button onClick={handleRun} disabled={loading || !file || webcamActive} className="w-full h-full py-space-md px-space-lg rounded-lg bg-primary-container text-on-primary-container font-headline-md text-headline-md tracking-tight hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-space-sm shadow-md disabled:opacity-50 disabled:pointer-events-none">
               <span className={`material-symbols-outlined text-[20px] ${loading ? 'animate-spin' : ''}`}>edit_square</span>
               <span className="font-semibold text-body-lg">Synthesize</span>
             </button>
@@ -93,10 +143,23 @@ export default function Task4() {
               <span className="font-label-md text-label-md uppercase tracking-wider font-semibold text-on-surface">Original Photo</span>
             </div>
           </div>
-          <div className="relative w-full aspect-[4/5] bg-surface-container-lowest flex items-center justify-center p-space-sm overflow-hidden">
-            {preview ? (
+          <div className="relative w-full aspect-[4/5] bg-surface-container-lowest flex items-center justify-center p-space-sm overflow-hidden group">
+            {webcamActive ? (
+              <div className="relative w-full h-full flex flex-col items-center justify-center">
+                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover rounded-lg scale-x-[-1]" />
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-space-md">
+                  <button onClick={captureWebcam} className="bg-primary text-on-primary rounded-full p-4 shadow-lg hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[28px]">camera</span>
+                  </button>
+                  <button onClick={stopWebcam} className="bg-error text-on-error rounded-full p-2 shadow-lg hover:bg-red-400 transition-all flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[20px]">close</span>
+                  </button>
+                </div>
+                <canvas ref={canvasRef} className="hidden" />
+              </div>
+            ) : preview ? (
               <img className="w-full h-full object-cover rounded-lg" src={preview} alt="Preview" />
-            ) : <span className="text-on-surface-variant">Awaiting Upload</span>}
+            ) : <span className="text-on-surface-variant">Awaiting Upload or Capture</span>}
           </div>
         </div>
         <div className="flex flex-col bg-surface-container rounded-xl shadow-lg overflow-hidden border border-surface-container-high">
@@ -105,6 +168,17 @@ export default function Task4() {
               <span className="w-2 h-2 rounded-full bg-secondary"></span>
               <span className="font-label-md text-label-md uppercase tracking-wider font-semibold text-on-surface">Generated Sketch</span>
             </div>
+            {result && (
+              <button onClick={() => {
+                  const a = document.createElement('a');
+                  a.href = result.output_image;
+                  a.download = `synthesized_sketch_${Date.now()}.png`;
+                  a.click();
+              }} className="flex items-center gap-space-xs text-primary hover:text-secondary transition-colors cursor-pointer">
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                <span className="font-label-sm text-label-sm font-semibold">Save</span>
+              </button>
+            )}
           </div>
           <div className="relative w-full aspect-[4/5] bg-surface-container-lowest flex items-center justify-center p-space-sm overflow-hidden">
             {result && <img className="w-full h-full object-cover rounded-lg" src={result.output_image} alt="Output" />}

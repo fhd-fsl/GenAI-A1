@@ -126,6 +126,17 @@ export default function Task1() {
               <span className="w-2 h-2 rounded-full bg-secondary"></span>
               <span className="font-label-md text-label-md uppercase tracking-wider font-semibold text-on-surface">Restored Image</span>
             </div>
+            {result && (
+              <button onClick={() => {
+                  const a = document.createElement('a');
+                  a.href = result.output_image;
+                  a.download = `universal_restoration_${Date.now()}.png`;
+                  a.click();
+              }} className="flex items-center gap-space-xs text-primary hover:text-secondary transition-colors cursor-pointer">
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                <span className="font-label-sm text-label-sm font-semibold">Save</span>
+              </button>
+            )}
           </div>
           <div className="relative w-full aspect-[4/3] bg-surface-container-lowest flex items-center justify-center p-space-sm overflow-hidden">
             {result && <img className="w-full h-full object-cover rounded-lg" src={result.output_image} alt="Output" />}

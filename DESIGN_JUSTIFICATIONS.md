@@ -129,3 +129,39 @@ By computing the mean routing weight across a batch ($\bar{w}_k$) and penalizing
 ### Independent Learning Rates for Stages
 - **Decision:** Handled `warmup_lr` and `finetune_lr` as two completely independent log-scale search variables in Optuna, rather than linking them via a hardcoded multiplier (e.g., `finetune_lr = warmup_lr * 0.1`).
 - **Justification:** The two stages perform fundamentally different mathematical operations. Stage 1 is training a simple linear classifier head from scratch, while Stage 2 is gently shifting the dense, deep weights of 3 massive autoencoders. Optuna discovered that Stage 2 actually required a *higher* learning rate (e.g., $6.47 \times 10^{-5}$) than Stage 1 ($1.91 \times 10^{-5}$) to properly mesh the massive network together, a counterintuitive optimum that a hardcoded $0.1\times$ decay multiplier would have completely missed.
+
+---
+
+## 6. Style-Conditioned Face-to-Sketch GAN (Task 4)
+
+### Theoretical Foundation: The Pix2Pix Framework
+- **Decision:** The entire Task 4 architecture (U-Net generator, PatchGAN discriminator, L1+BCE loss formulation, and Tanh activation) is modeled directly on the Pix2Pix framework (Isola et al., 2017).
+- **Justification:** Pix2Pix is the gold standard for paired image-to-image translation. Traditional CNNs trained solely on L1 or MSE (like our Task 1 autoencoder) tend to output blurry, smoothed images because they "average out" uncertainty to minimize pixel-wise error. By introducing a conditional discriminator that critiques the high-frequency realism of the output, Pix2Pix forces the generator to hallucinate sharp, realistic textures. We adopted its specific conventions—including $\mathcal{N}(0, 0.02)$ weight initialization, a $2 \times 2$ U-Net bottleneck, and a strided PatchGAN—because these structural decisions were empirically proven by the original authors to prevent common GAN failure modes (like color washing and mode collapse) during paired translation tasks.
+
+### The Bottleneck Dimension (2x2)
+- **Decision:** The U-Net encoder intentionally stops downsampling at a $2 \times 2$ spatial resolution rather than a $1 \times 1$ global vector.
+- **Justification:** A $1 \times 1$ bottleneck completely destroys all spatial layout information, forcing the decoder to blindly reconstruct the structural arrangement from a single heavily compressed vector. By retaining a $2 \times 2$ spatial grid, the bottleneck maintains a highly compressed but geometrically meaningful map (e.g., top-left features remain distinct from bottom-right features), which significantly improves structural coherence before the upsampling process begins.
+
+### Categorical Style Embedding vs. Raw Label
+- **Decision:** Used a learned categorical `nn.Embedding(3, embed_dim)` spatially expanded and concatenated to the inputs, rather than passing a raw integer label (0, 1, 2).
+- **Justification:** If we simply concatenated a raw integer label, the network would incorrectly interpret the styles as having an ordinal mathematical relationship (i.e., that Style 1 is "halfway" between Style 0 and Style 2). By projecting each style into an independent, learned continuous vector space, the network dynamically learns the complex relationships and visual traits of each style category entirely on its own during backpropagation, without being forced into an artificial numeric ordering.
+
+### Generator Activation Function
+- **Decision:** Used `Tanh` at the output layer of the Generator.
+- **Justification:** The generated sketch must ultimately represent a valid image. Standard Pix2Pix models usually normalize inputs and outputs to `[-1, 1]` to match the symmetric output range of `Tanh`. `Tanh` is chosen over `Sigmoid` because `Tanh` is zero-centered and has stronger gradients across its active range, which mitigates vanishing gradient problems during the deep backpropagation required in adversarial networks.
+
+### Generator Objective Function
+- **Decision:** Combined Binary Cross-Entropy with Logits for Adversarial Loss and Mean Absolute Error (L1) for Reconstruction Loss ($\mathcal{L}_G = \mathcal{L}_{adv} + \lambda_{L1} \cdot L1(y, G(x, s))$).
+- **Justification:** The BCE adversarial loss trains the generator to produce high-frequency, perceptually sharp details that fool the discriminator, but it does not guarantee the output actually looks like the specific person in the input photo. We add an L1 distance penalty against the ground-truth paired sketch to ensure structural alignment. L1 (MAE) is chosen over L2 (MSE) because L2 aggressively penalizes large errors, causing models to produce blurry, smoothed-out images, whereas L1 is more forgiving of sharp edges and encourages crisper generation.
+
+### Linear Learning Rate Decay (LambdaLR)
+- **Decision:** Kept the learning rate constant for the first 50 epochs, and then linearly decayed it to zero over the final 50 epochs.
+- **Justification:** GAN training is highly unstable. If the learning rate remains too high at the end of training, the generator and discriminator fall into oscillatory behavior, constantly overcorrecting against each other without converging. The linear decay schedule slowly "freezes" the weights, allowing the models to settle into a stable equilibrium.
+
+### Explicit Weight Initialization
+- **Decision:** Applied a Gaussian initialization $\mathcal{N}(0, 0.02)$ to all Convolutional and BatchNorm layers rather than using PyTorch's default Kaiming Uniform.
+- **Justification:** Kaiming Uniform is optimized for standard feed-forward classification networks. For Pix2Pix-style GANs, the $\mathcal{N}(0, 0.02)$ scale has been empirically proven to provide the exact variance needed to prevent initial gradient vanishing/exploding and ensure stable adversarial dynamics early in training.
+
+### Exporting Final vs. Best Checkpoint
+- **Decision:** Exported the `generator_final.pth` checkpoint (Epoch 100) rather than the `generator_best.pth` checkpoint (lowest validation loss).
+- **Justification:** In conditional GANs, the validation metric (`val_g_loss`) is heavily influenced by the adversarial BCE loss. Because the discriminator is constantly improving, the generator's adversarial loss naturally fluctuates and often increases over time, rendering validation loss a highly unreliable metric for true perceptual quality. The final checkpoint represents the model that has benefited from the complete stabilizing LR decay schedule and is standard practice for GAN deployment.
